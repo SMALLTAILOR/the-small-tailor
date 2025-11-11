@@ -6,7 +6,12 @@ import { useNotification } from '../../context/NotificationContext';
 import { User, Role, ApprovalStatus, UserStatus, SalaryType, OperationType } from '../../types';
 import { APP_NAME, ICONS } from '../../constants';
 
-const FormWrapper = ({ title, children, onSubmit }: {title: string, children: React.ReactNode, onSubmit: (e: React.FormEvent) => void}) => (
+// FIX: Reverted from a type alias to an inline type for props to resolve a type inference issue with the `children` prop.
+const FormWrapper = ({ title, children, onSubmit }: {
+  title: string;
+  children: React.ReactNode;
+  onSubmit: (e: React.FormEvent) => void;
+}) => (
     <div className="w-full bg-white rounded-lg shadow-lg md:mt-0 sm:max-w-md xl:p-0">
       <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
         <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl">

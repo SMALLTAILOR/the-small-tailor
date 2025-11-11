@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
@@ -91,10 +92,11 @@ const WipManagement: React.FC = () => {
     
     useEffect(() => {
         // If the active tab is no longer visible (e.g., after user change), reset to default
-        if (!visibleTabs.some(t => t.id === activeTab)) {
-            setActiveTab(defaultTab);
+        if (visibleTabs.length > 0 && !visibleTabs.some(t => t.id === activeTab)) {
+            setActiveTab(visibleTabs[0].id);
         }
-    }, [visibleTabs, activeTab, defaultTab]);
+    }, [visibleTabs, activeTab]);
+
 
     const pageTitle = user?.role === Role.ADMIN ? 'Assign Cost' : 'Work In Progress';
 
@@ -190,6 +192,7 @@ const OperationsAdminView: React.FC = () => {
     const [editingOperation, setEditingOperation] = useState<SewingOperation | null>(null);
 
     const trackingNumbersWithStock = useMemo(() => {
+        // FIX: Add explicit type to accumulator to fix type inference issue by casting the initial value.
         const stockByTrackingNumber = state.inventory.reduce((acc, inv) => {
             if (!acc[inv.trackingNumber]) {
                 acc[inv.trackingNumber] = 0;
@@ -324,6 +327,18 @@ const WorkEntryView: React.FC<{operationType: OperationType}> = ({ operationType
         const item = state.items.find(i => i.id === inv.itemId);
         return item?.name || 'Unknown Item';
     }, [trackingNumber, state.inventory, state.items]);
+    
+    const getOperationName = (opId: string | undefined): string => {
+        if (!opId) return 'N/A';
+        return state.sewingOperations.find(op => op.id === opId)?.operationName || 'N/A';
+    };
+
+    const todaysEntries = useMemo(() => {
+        if (!user) return [];
+        return state.workEntries
+            .filter(entry => entry.userId === user.id && entry.date === today && entry.type === operationType)
+            .sort((a, b) => parseInt(b.id.split('-')[1]) - parseInt(a.id.split('-')[1])); // sort by timestamp in ID desc
+    }, [state.workEntries, user, today, operationType]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -340,7 +355,7 @@ const WorkEntryView: React.FC<{operationType: OperationType}> = ({ operationType
         };
         dispatch({ type: 'ADD_WORK_ENTRY', payload: newEntry });
         showNotification("RECORDED SUCCESSFULLY");
-        setTrackingNumber('');
+        // Don't reset tracking number, user might do multiple operations on it
         setOperationId('');
         setQuantity('');
     };
@@ -349,22 +364,22 @@ const WorkEntryView: React.FC<{operationType: OperationType}> = ({ operationType
         return <p className="text-center text-red-500">You must be marked as 'PRESENT' and approved by an admin to log work for today.</p>
     }
 
-    const title = operationType === OperationType.SEWING ? 'Daily Sewing Entry' : 'Daily Finishing Entry';
+    const title = operationType === OperationType.SEWING ? 'Sewing' : 'Finishing';
     const godownName = operationType === OperationType.SEWING ? 'Sewing WIP' : 'Finishing WIP';
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto">
-            <h3 className="text-lg font-semibold mb-4">{title}</h3>
-            <div>
-                <label>Tracking Number (in {godownName} Godown)</label>
-                <select name="trackingNumber" value={trackingNumber} onChange={e => {setTrackingNumber(e.target.value); setOperationId('')}} required className="w-full p-2 border rounded-md">
-                    <option value="">Select Tracking #</option>
-                     {trackingNumbersInCorrectGodown.map(tn => <option key={tn} value={tn}>{tn}</option>)}
-                </select>
-                {itemName && <p className="text-sm text-gray-500 mt-1">Item: <strong>{itemName}</strong></p>}
-            </div>
-            {trackingNumber && (
-                <>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <h3 className="text-lg font-semibold mb-4">Daily {title} Entry</h3>
+                <div>
+                    <label>Tracking Number (in {godownName} Godown)</label>
+                    <select name="trackingNumber" value={trackingNumber} onChange={e => {setTrackingNumber(e.target.value); setOperationId('')}} required className="w-full p-2 border rounded-md">
+                        <option value="">Select Tracking #</option>
+                        {trackingNumbersInCorrectGodown.map(tn => <option key={tn} value={tn}>{tn}</option>)}
+                    </select>
+                    {itemName && <p className="text-sm text-gray-500 mt-1">Item: <strong>{itemName}</strong></p>}
+                </div>
+                {trackingNumber && (
                     <div>
                         <label>Operation</label>
                         <select name="sewingOperationId" value={operationId} onChange={e => setOperationId(e.target.value)} required className="w-full p-2 border rounded-md">
@@ -372,28 +387,59 @@ const WorkEntryView: React.FC<{operationType: OperationType}> = ({ operationType
                             {availableOperations.map(op => <option key={op.id} value={op.id}>{op.operationName}</option>)}
                         </select>
                     </div>
-                </>
-            )}
-            {selectedOperation && (
-                <>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div><label>Machine Type</label><input type="text" value={selectedOperation.machineType} readOnly className="w-full p-2 border rounded-md bg-gray-100" /></div>
-                        <div><label>Rate</label><input type="text" value={`₹${selectedOperation.rate.toFixed(2)}`} readOnly className="w-full p-2 border rounded-md bg-gray-100" /></div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label>Quantity</label>
-                            <input name="quantity" type="number" min="1" value={quantity} onChange={e => setQuantity(e.target.value)} required className="w-full p-2 border rounded-md" />
+                )}
+                {selectedOperation && (
+                    <>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div><label>Machine Type</label><input type="text" value={selectedOperation.machineType} readOnly className="w-full p-2 border rounded-md bg-gray-100" /></div>
+                            <div><label>Rate</label><input type="text" value={`₹${selectedOperation.rate.toFixed(2)}`} readOnly className="w-full p-2 border rounded-md bg-gray-100" /></div>
                         </div>
-                        <div>
-                            <label>Amount</label>
-                            <input type="text" value={`₹${(selectedOperation.rate * (Number(quantity) || 0)).toFixed(2)}`} readOnly className="w-full p-2 border rounded-md bg-gray-100" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label>Quantity</label>
+                                <input name="quantity" type="number" min="1" value={quantity} onChange={e => setQuantity(e.target.value)} required className="w-full p-2 border rounded-md" />
+                            </div>
+                            <div>
+                                <label>Amount</label>
+                                <input type="text" value={`₹${(selectedOperation.rate * (Number(quantity) || 0)).toFixed(2)}`} readOnly className="w-full p-2 border rounded-md bg-gray-100" />
+                            </div>
                         </div>
-                    </div>
-                    <button type="submit" className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">Submit Work</button>
-                </>
-            )}
-        </form>
+                        <button type="submit" className="w-full bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">Submit Work</button>
+                    </>
+                )}
+            </form>
+            <div className="mt-2 md:mt-0">
+                <h4 className="text-lg font-semibold mb-4">Today's {title} Entries</h4>
+                <div className="border rounded-lg p-2 max-h-96 overflow-y-auto">
+                    {todaysEntries.length > 0 ? (
+                        <table className="w-full text-sm">
+                            <thead className="text-left">
+                                <tr className="border-b">
+                                    <th className="p-2">Operation</th>
+                                    <th className="p-2">Qty</th>
+                                    <th className="p-2">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {todaysEntries.map(entry => {
+                                    const op = state.sewingOperations.find(o => o.id === entry.operationId);
+                                    const amount = op && entry.quantity ? (op.rate * entry.quantity).toFixed(2) : '0.00';
+                                    return (
+                                        <tr key={entry.id} className="border-b last:border-0">
+                                            <td className="p-2">{getOperationName(entry.operationId)}</td>
+                                            <td className="p-2">{entry.quantity}</td>
+                                            <td className="p-2">₹{amount}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p className="text-center text-gray-500 py-4">No {title.toLowerCase()} work logged for today yet.</p>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 };
 
@@ -414,6 +460,26 @@ const OtherActivityView: React.FC = () => {
             .map(a => a.userId);
         return state.users.filter(u => presentUserIds.includes(u.id));
     }, [state.attendance, state.users, today]);
+
+    const availableTrackingNumbers = useMemo(() => {
+        const sewingWipGodown = state.godowns.find(g => g.name.toLowerCase() === 'sewing wip');
+        const finishingWipGodown = state.godowns.find(g => g.name.toLowerCase() === 'finishing wip');
+        const wipGodownIds = [sewingWipGodown?.id, finishingWipGodown?.id].filter(Boolean);
+
+        if (wipGodownIds.length === 0) return [];
+
+        const tnsInGodown = new Set(
+            state.inventory
+                .filter(inv => wipGodownIds.includes(inv.godownId))
+                .map(inv => inv.trackingNumber)
+        );
+
+        const tnsWithOps = new Set(
+            state.sewingOperations.map(op => op.trackingNumber)
+        );
+        
+        return [...tnsWithOps].filter(tn => tnsInGodown.has(tn));
+    }, [state.godowns, state.inventory, state.sewingOperations]);
 
     const availableOperations = useMemo(() => {
         if (!trackingNumber) return [];
@@ -476,7 +542,7 @@ const OtherActivityView: React.FC = () => {
                         <label>Tracking Number</label>
                         <select name="trackingNumber" value={trackingNumber} onChange={e => {setTrackingNumber(e.target.value); setOperationId('')}} required className="w-full p-2 border rounded-md">
                             <option value="">Select Tracking #</option>
-                            {[...new Set(state.sewingOperations.map(op => op.trackingNumber))].map(tn => <option key={tn} value={tn}>{tn}</option>)}
+                            {availableTrackingNumbers.map(tn => <option key={tn} value={tn}>{tn}</option>)}
                         </select>
                          {itemName && <p className="text-sm text-gray-500 mt-1">Item: <strong>{itemName}</strong></p>}
                     </div>

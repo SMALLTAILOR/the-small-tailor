@@ -356,6 +356,7 @@ const InternalTransferView: React.FC = () => {
     const KEY_DELIMITER = '_||_';
 
     const trackingNumbersWithStock = useMemo(() => {
+        // FIX: Add explicit type to accumulator to fix type inference issue by casting the initial value.
         const stockByTrackingNumber = state.inventory.reduce((acc, inv) => {
             if (!acc[inv.trackingNumber]) acc[inv.trackingNumber] = 0;
             acc[inv.trackingNumber] += inv.stock.reduce((sum, s) => sum + s.quantity, 0);
@@ -390,7 +391,9 @@ const InternalTransferView: React.FC = () => {
 
         const items: StockItem[] = [];
         let hasError = false;
-        Object.entries(transferQtys).forEach(([key, value]) => {
+        // FIX: Use Object.keys to avoid type inference issues with Object.entries.
+        Object.keys(transferQtys).forEach(key => {
+            const value = transferQtys[key];
             const qty = parseInt(value || '0');
             if (qty > 0) {
                 const [color, size] = key.split(KEY_DELIMITER);
@@ -480,6 +483,7 @@ const GoodsOutwardView: React.FC = () => {
     const KEY_DELIMITER = '_||_';
 
     const trackingNumbersWithStock = useMemo(() => {
+        // FIX: Add explicit type to accumulator to fix type inference issue by casting the initial value.
         const stockByTrackingNumber = state.inventory.reduce((acc, inv) => {
             if (!acc[inv.trackingNumber]) acc[inv.trackingNumber] = 0;
             acc[inv.trackingNumber] += inv.stock.reduce((sum, s) => sum + s.quantity, 0);
@@ -507,7 +511,9 @@ const GoodsOutwardView: React.FC = () => {
         
         const items: StockItem[] = [];
         let hasError = false;
-        Object.entries(outwardQtys).forEach(([key, value]) => {
+        // FIX: Use Object.keys to avoid type inference issues with Object.entries.
+        Object.keys(outwardQtys).forEach(key => {
+            const value = outwardQtys[key];
             const qty = parseInt(value || '0');
             if (qty > 0) {
                 const [color, size] = key.split(KEY_DELIMITER);

@@ -1,9 +1,12 @@
+
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import { User, ApprovalStatus, UserStatus, SalaryType, OperationType } from '../../types';
 
 const UserEditModal: React.FC<{ user: User, onClose: () => void }> = ({ user, onClose }) => {
     const { dispatch } = useData();
+    const { user: loggedInUser, updateUser } = useAuth();
     const [formData, setFormData] = useState<User['details']>(user.details);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -22,7 +25,11 @@ const UserEditModal: React.FC<{ user: User, onClose: () => void }> = ({ user, on
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        dispatch({ type: 'UPDATE_USER', payload: { ...user, details: formData } });
+        const updatedUserPayload = { ...user, details: formData };
+        dispatch({ type: 'UPDATE_USER', payload: updatedUserPayload });
+        if (loggedInUser && loggedInUser.id === user.id) {
+            updateUser(updatedUserPayload);
+        }
         onClose();
     };
 
@@ -33,42 +40,42 @@ const UserEditModal: React.FC<{ user: User, onClose: () => void }> = ({ user, on
                     <h3 className="text-xl font-bold">Edit User: {user.details.name}</h3>
                     
                     <div>
-                        <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900">Full Name</label>
+                        <label htmlFor="name" className="block mb-2 text-sm font-medium text-slate-900">Full Name</label>
                         <input type="text" id="name" name="name" value={formData.name} onChange={handleInputChange} className="w-full p-2 border rounded-md" required />
                     </div>
                     
                     <div>
-                        <label htmlFor="jobProfile" className="block mb-2 text-sm font-medium text-gray-900">Job Profile</label>
+                        <label htmlFor="jobProfile" className="block mb-2 text-sm font-medium text-slate-900">Job Profile</label>
                         <input type="text" id="jobProfile" name="jobProfile" value={formData.jobProfile} onChange={handleInputChange} className="w-full p-2 border rounded-md" required />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label htmlFor="salaryType" className="block mb-2 text-sm font-medium text-gray-900">Salary Type</label>
+                            <label htmlFor="salaryType" className="block mb-2 text-sm font-medium text-slate-900">Salary Type</label>
                             <select id="salaryType" name="salaryType" value={formData.salaryType} onChange={handleInputChange} className="w-full p-2 border rounded-md">
                                 {Object.values(SalaryType).map(type => <option key={type} value={type}>{type}</option>)}
                             </select>
                         </div>
                          <div>
-                            <label htmlFor="salaryAmount" className="block mb-2 text-sm font-medium text-gray-900">Salary Amount</label>
+                            <label htmlFor="salaryAmount" className="block mb-2 text-sm font-medium text-slate-900">Salary Amount</label>
                             <input type="number" id="salaryAmount" name="salaryAmount" value={formData.salaryAmount} onChange={handleInputChange} className="w-full p-2 border rounded-md" required />
                         </div>
                     </div>
                     
                     <div>
-                        <label className="block mb-2 text-sm font-medium text-gray-900">Scope of Work (WIP)</label>
+                        <label className="block mb-2 text-sm font-medium text-slate-900">Scope of Work (WIP)</label>
                         <div className="flex items-center space-x-4 mt-1">
                             {Object.values(OperationType).map(scope => (
                                 <div key={scope} className="flex items-center">
-                                    <input id={`scope-${scope}`} type="checkbox" checked={formData.wipScope.includes(scope)} onChange={() => handleWipScopeChange(scope)} className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"/>
-                                    <label htmlFor={`scope-${scope}`} className="ml-2 text-sm font-medium text-gray-900">{scope}</label>
+                                    <input id={`scope-${scope}`} type="checkbox" checked={formData.wipScope.includes(scope)} onChange={() => handleWipScopeChange(scope)} className="w-4 h-4 text-primary-600 bg-slate-100 border-slate-300 rounded focus:ring-primary-500"/>
+                                    <label htmlFor={`scope-${scope}`} className="ml-2 text-sm font-medium text-slate-900">{scope}</label>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     <div className="flex justify-end space-x-2 pt-4">
-                        <button type="button" onClick={onClose} className="bg-gray-200 px-4 py-2 rounded-md">Cancel</button>
+                        <button type="button" onClick={onClose} className="bg-slate-200 px-4 py-2 rounded-md">Cancel</button>
                         <button type="submit" className="bg-primary-600 text-white px-4 py-2 rounded-md">Save Changes</button>
                     </div>
                 </form>
@@ -108,8 +115,8 @@ const UserManagement: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-bold mb-4">{title}</h2>
             <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                <table className="w-full text-sm text-left text-slate-500">
+                    <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                         <tr>
                             <th scope="col" className="px-6 py-3">User</th>
                             <th scope="col" className="px-6 py-3">Job Profile</th>
@@ -121,12 +128,12 @@ const UserManagement: React.FC = () => {
                     </thead>
                     <tbody>
                         {users.map(user => (
-                            <tr key={user.id} className="bg-white border-b hover:bg-gray-50">
+                            <tr key={user.id} className="bg-white border-b hover:bg-slate-50">
                                 <td className="px-6 py-4 flex items-center">
                                     <img src={user.details.image} alt={user.details.name} className="w-10 h-10 rounded-full mr-3" />
                                     <div>
-                                        <div className="font-semibold text-gray-800">{user.details.name}</div>
-                                        <div className="text-xs text-gray-500">{user.username}</div>
+                                        <div className="font-semibold text-slate-800">{user.details.name}</div>
+                                        <div className="text-xs text-slate-500">{user.username}</div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">{user.details.jobProfile}</td>
@@ -134,7 +141,7 @@ const UserManagement: React.FC = () => {
                                 <td className="px-6 py-4">
                                     <div className="flex flex-wrap gap-1">
                                     {user.details.wipScope?.map(scope => (
-                                        <span key={scope} className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+                                        <span key={scope} className="px-2 py-0.5 text-xs font-medium rounded-full bg-slate-100 text-slate-600">
                                             {scope}
                                         </span>
                                     )) || 'N/A'}
@@ -142,9 +149,9 @@ const UserManagement: React.FC = () => {
                                 </td>
                                 <td className="px-6 py-4">
                                     {isPending ? (
-                                        <span className="px-2 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">Pending</span>
+                                        <span className="px-2 py-1 text-xs font-medium text-amber-800 bg-amber-100 rounded-full">Pending</span>
                                     ) : (
-                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.status === UserStatus.ACTIVE ? 'text-green-800 bg-green-100' : 'text-red-800 bg-red-100'}`}>
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${user.status === UserStatus.ACTIVE ? 'text-emerald-800 bg-emerald-100' : 'text-red-800 bg-red-100'}`}>
                                             {user.status}
                                         </span>
                                     )}
@@ -152,13 +159,13 @@ const UserManagement: React.FC = () => {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     {isPending ? (
                                         <div className="flex space-x-2">
-                                            <button onClick={() => handleApproval(user, ApprovalStatus.APPROVED)} className="font-medium text-green-600 hover:text-green-900">Approve</button>
+                                            <button onClick={() => handleApproval(user, ApprovalStatus.APPROVED)} className="font-medium text-emerald-600 hover:text-emerald-900">Approve</button>
                                             <button onClick={() => handleDelete(user.id)} className="font-medium text-red-600 hover:text-red-900">Reject</button>
                                         </div>
                                     ) : (
                                         <div className="flex space-x-2">
-                                             <button onClick={() => handleEdit(user)} className="font-medium text-blue-600 hover:text-blue-900">Edit</button>
-                                            <button onClick={() => handleStatusChange(user, user.status === UserStatus.ACTIVE ? UserStatus.TERMINATED : UserStatus.ACTIVE)} className="font-medium text-yellow-600 hover:text-yellow-900">
+                                             <button onClick={() => handleEdit(user)} className="font-medium text-primary-600 hover:text-primary-900">Edit</button>
+                                            <button onClick={() => handleStatusChange(user, user.status === UserStatus.ACTIVE ? UserStatus.TERMINATED : UserStatus.ACTIVE)} className="font-medium text-amber-600 hover:text-amber-900">
                                                 {user.status === UserStatus.ACTIVE ? 'Terminate' : 'Activate'}
                                             </button>
                                             <button onClick={() => handleDelete(user.id)} className="font-medium text-red-600 hover:text-red-900">Delete</button>
@@ -169,14 +176,14 @@ const UserManagement: React.FC = () => {
                         ))}
                     </tbody>
                 </table>
-                 {users.length === 0 && <p className="text-center py-4 text-gray-500">No users found.</p>}
+                 {users.length === 0 && <p className="text-center py-4 text-slate-500">No users found.</p>}
             </div>
         </div>
     );
 
     return (
         <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">User Management</h1>
+            <h1 className="text-3xl font-bold text-slate-800 mb-6">User Management</h1>
             <div className="space-y-8">
                 {pendingUsers.length > 0 && <UserTable users={pendingUsers} title="Pending Approvals" isPending={true} />}
                 <UserTable users={managedUsers} title="Managed Users" isPending={false} />

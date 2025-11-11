@@ -1,11 +1,12 @@
+
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useNotification } from '../../context/NotificationContext';
-import { Role, Godown, Item, ItemColor, ItemSize, Inventory, StockItem, InternalTransfer, GoodsOutward } from '../../types';
+import { Role, Godown, Item, ItemColor, ItemSize, Inventory, StockItem, InternalTransfer } from '../../types';
 
-// Item Modal Form - Moved to top level to prevent re-rendering issues
-const ItemModal: React.FC<{ item: Item | null, closeModal: () => void }> = ({ item, closeModal }) => {
+// Item Modal Form - Now exportable for reuse
+export const ItemModal: React.FC<{ item: Item | null, onClose: (newItemId?: string) => void }> = ({ item, onClose }) => {
     const { dispatch } = useData();
     const { showNotification } = useNotification();
     const [formState, setFormState] = useState<Item>(item || { id: '', name: '', colors: [{ name: '', sizes: [{ name: '' }] }] });
@@ -35,11 +36,14 @@ const ItemModal: React.FC<{ item: Item | null, closeModal: () => void }> = ({ it
         e.preventDefault();
         if (item) {
             dispatch({ type: 'UPDATE_ITEM', payload: formState });
+            showNotification("RECORDED SUCCESSFULLY");
+            onClose();
         } else {
-            dispatch({ type: 'ADD_ITEM', payload: { ...formState, id: `item-${Date.now()}` } });
+            const newItemPayload = { ...formState, id: `item-${Date.now()}` };
+            dispatch({ type: 'ADD_ITEM', payload: newItemPayload });
+            showNotification("RECORDED SUCCESSFULLY");
+            onClose(newItemPayload.id);
         }
-        showNotification("RECORDED SUCCESSFULLY");
-        closeModal();
     };
 
     return (
@@ -64,7 +68,7 @@ const ItemModal: React.FC<{ item: Item | null, closeModal: () => void }> = ({ it
                     ))}
                     <button type="button" onClick={addColor} className="text-sm text-primary-600">+ Add Color</button>
                     <div className="flex justify-end space-x-2 pt-4">
-                        <button type="button" onClick={closeModal} className="bg-gray-200 px-4 py-2 rounded-md">Cancel</button>
+                        <button type="button" onClick={() => onClose()} className="bg-slate-200 px-4 py-2 rounded-md">Cancel</button>
                         <button type="submit" className="bg-primary-600 text-white px-4 py-2 rounded-md">{item ? 'Save' : 'Create'}</button>
                     </div>
                 </form>
@@ -72,6 +76,69 @@ const ItemModal: React.FC<{ item: Item | null, closeModal: () => void }> = ({ it
         </div>
     );
 }
+
+const EditStockModal: React.FC<{
+    stockItem: StockItem & { trackingNumber: string; godownId: string; };
+    closeModal: () => void;
+}> = ({ stockItem, closeModal }) => {
+    const { dispatch } = useData();
+    const { showNotification } = useNotification();
+    const [quantity, setQuantity] = useState(stockItem.quantity);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const newQuantity = Number(quantity);
+        if (newQuantity < 0) {
+            alert("Quantity cannot be negative.");
+            return;
+        }
+
+        dispatch({
+            type: 'UPDATE_STOCK_ITEM',
+            payload: {
+                trackingNumber: stockItem.trackingNumber,
+                godownId: stockItem.godownId,
+                color: stockItem.color,
+                size: stockItem.size,
+                newQuantity,
+            }
+        });
+        showNotification("STOCK UPDATED SUCCESSFULLY");
+        closeModal();
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <h3 className="text-xl font-bold">Edit Stock Quantity</h3>
+                    <div className="text-sm space-y-1 text-slate-600">
+                        <p><strong>Tracking #:</strong> {stockItem.trackingNumber}</p>
+                        <p><strong>Color:</strong> {stockItem.color}</p>
+                        <p><strong>Size:</strong> {stockItem.size}</p>
+                    </div>
+                    <div>
+                        <label htmlFor="quantity" className="block text-sm font-medium text-slate-700">Quantity</label>
+                        <input
+                            id="quantity"
+                            type="number"
+                            value={quantity}
+                            onChange={e => setQuantity(Number(e.target.value))}
+                            required
+                            min="0"
+                            className="w-full p-2 border rounded-md mt-1"
+                        />
+                    </div>
+                    <div className="flex justify-end space-x-2 pt-4">
+                        <button type="button" onClick={closeModal} className="bg-slate-200 px-4 py-2 rounded-md">Cancel</button>
+                        <button type="submit" className="bg-primary-600 text-white px-4 py-2 rounded-md">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+};
+
 
 // Filter Input Component - Moved to top level
 const FilterInput: React.FC<{ placeholder: string, value: string, onChange: (value: string) => void }> = ({ placeholder, value, onChange }) => (
@@ -91,22 +158,20 @@ const InventoryManagement: React.FC = () => {
 
     const TABS = [
         { id: 'stock', label: 'Stock View', roles: [Role.ADMIN, Role.MANAGER] },
-        { id: 'add_stock', label: 'Add Stock', roles: [Role.ADMIN, Role.MANAGER] },
         { id: 'transfers', label: 'Internal Transfer', roles: [Role.ADMIN, Role.MANAGER] },
-        { id: 'outward', label: 'Goods Outward', roles: [Role.ADMIN, Role.MANAGER] },
         { id: 'items', label: 'Manage Items', roles: [Role.ADMIN] },
         { id: 'godowns', label: 'Manage Godowns', roles: [Role.ADMIN, Role.MANAGER] }
     ].filter(tab => user && tab.roles.includes(user.role));
 
     return (
         <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Inventory Management</h1>
+            <h1 className="text-3xl font-bold text-slate-800 mb-6">Inventory Management</h1>
             <div className="bg-white p-6 rounded-lg shadow-md">
-                <div className="border-b border-gray-200">
+                <div className="border-b border-slate-200">
                     <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                         {TABS.map(tab => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                                className={`${activeTab === tab.id ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}>
+                                className={`${activeTab === tab.id ? 'border-primary-500 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}>
                                 {tab.label}
                             </button>
                         ))}
@@ -114,9 +179,7 @@ const InventoryManagement: React.FC = () => {
                 </div>
                 <div className="mt-6">
                     {activeTab === 'stock' && <StockView />}
-                    {activeTab === 'add_stock' && <AddStockView setTab={setActiveTab} />}
                     {activeTab === 'transfers' && <InternalTransferView />}
-                    {activeTab === 'outward' && <GoodsOutwardView />}
                     {activeTab === 'items' && <ItemView />}
                     {activeTab === 'godowns' && <GodownView />}
                 </div>
@@ -127,7 +190,8 @@ const InventoryManagement: React.FC = () => {
 
 // Stock View Component
 const StockView: React.FC = () => {
-    const { state } = useData();
+    const { state, dispatch } = useData();
+    const { showNotification } = useNotification();
     const [filters, setFilters] = useState({
         trackingNumber: '',
         itemId: 'all',
@@ -135,6 +199,9 @@ const StockView: React.FC = () => {
         color: '',
         size: '',
     });
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingStockItem, setEditingStockItem] = useState< (StockItem & { trackingNumber: string; itemId: string; godownId: string; }) | null>(null);
+
 
     const handleFilterChange = (filterName: keyof typeof filters, value: string) => {
         setFilters(prev => ({ ...prev, [filterName]: value }));
@@ -169,14 +236,34 @@ const StockView: React.FC = () => {
     const getItemName = (id: string) => state.items.find(i => i.id === id)?.name || 'Unknown Item';
     const getGodownName = (id: string) => state.godowns.find(g => g.id === id)?.name || 'Unknown Godown';
 
+    const handleEdit = (item: StockItem & { trackingNumber: string; itemId: string; godownId: string; }) => {
+        setEditingStockItem(item);
+        setIsEditModalOpen(true);
+    };
+
+    const handleDelete = (item: StockItem & { trackingNumber: string; godownId: string; color: string; size: string; }) => {
+        if (window.confirm(`Are you sure you want to delete ${item.quantity} pcs of ${item.color}/${item.size} for TN ${item.trackingNumber}? This action cannot be undone.`)) {
+            dispatch({
+                type: 'DELETE_STOCK_ITEM',
+                payload: {
+                    trackingNumber: item.trackingNumber,
+                    godownId: item.godownId,
+                    color: item.color,
+                    size: item.size
+                }
+            });
+            showNotification("STOCK ITEM DELETED SUCCESSFULLY");
+        }
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold">Current Stock</h3>
             </div>
             <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                <table className="w-full text-sm text-left text-slate-500">
+                    <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                         <tr>
                             <th className="px-6 py-3">Tracking #</th>
                             <th className="px-6 py-3">Item</th>
@@ -184,6 +271,7 @@ const StockView: React.FC = () => {
                             <th className="px-6 py-3">Colour</th>
                             <th className="px-6 py-3">Size</th>
                             <th className="px-6 py-3">Qty</th>
+                            <th className="px-6 py-3">Actions</th>
                         </tr>
                         <tr>
                             <th className="px-2 py-1"><FilterInput placeholder="Filter..." value={filters.trackingNumber} onChange={val => handleFilterChange('trackingNumber', val)} /></th>
@@ -202,6 +290,7 @@ const StockView: React.FC = () => {
                             <th className="px-2 py-1"><FilterInput placeholder="Filter..." value={filters.color} onChange={val => handleFilterChange('color', val)} /></th>
                             <th className="px-2 py-1"><FilterInput placeholder="Filter..." value={filters.size} onChange={val => handleFilterChange('size', val)} /></th>
                             <th className="px-2 py-1"></th>
+                            <th className="px-2 py-1"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -213,135 +302,25 @@ const StockView: React.FC = () => {
                                 <td className="px-6 py-4">{item.color}</td>
                                 <td className="px-6 py-4">{item.size}</td>
                                 <td className="px-6 py-4 font-semibold text-lg">{item.quantity}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                    <button onClick={() => handleEdit(item)} className="text-indigo-600 hover:text-indigo-900">Edit</button>
+                                    <button onClick={() => handleDelete(item)} className="text-red-600 hover:text-red-900">Delete</button>
+                                </td>
                             </tr>
                         ))}
                          {filteredInventory.length === 0 && (
-                            <tr><td colSpan={6} className="text-center py-4 text-gray-500">No stock found for this filter.</td></tr>
+                            <tr><td colSpan={7} className="text-center py-4 text-slate-500">No stock found for this filter.</td></tr>
                         )}
                     </tbody>
                 </table>
             </div>
+            {isEditModalOpen && editingStockItem && (
+                <EditStockModal
+                    stockItem={editingStockItem}
+                    closeModal={() => setIsEditModalOpen(false)}
+                />
+            )}
         </div>
-    );
-};
-
-
-// Add Stock Component
-const AddStockView: React.FC<{setTab: (tab: string) => void}> = ({ setTab }) => {
-    const { state, dispatch } = useData();
-    const { showNotification } = useNotification();
-    const [formState, setFormState] = useState<{ [key: string]: any }>({});
-    const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-    const [isItemModalOpen, setIsItemModalOpen] = useState(false);
-
-    const handleItemSelect = (itemId: string) => {
-        const item = state.items.find(i => i.id === itemId);
-        setSelectedItem(item || null);
-        setFormState(prev => ({ ...prev, itemId }));
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedItem) {
-            alert('Please select an item.');
-            return;
-        }
-        if (state.inventory.some(i => i.trackingNumber === formState.trackingNumber)) {
-            alert('This tracking number already exists.');
-            return;
-        }
-
-        const stock: StockItem[] = [];
-        selectedItem.colors.forEach(color => {
-            color.sizes.forEach(size => {
-                const qty = parseInt(formState[`${color.name}-${size.name}`] || '0');
-                if (qty > 0) {
-                    stock.push({ color: color.name, size: size.name, quantity: qty });
-                }
-            });
-        });
-
-        if (stock.length === 0) {
-            alert('Please enter quantity for at least one size.');
-            return;
-        }
-
-        const newInventory: Inventory = {
-            trackingNumber: formState.trackingNumber,
-            partyChallanNumber: formState.partyChallanNumber,
-            challanDate: formState.challanDate,
-            itemId: formState.itemId,
-            godownId: formState.godownId,
-            stock,
-        };
-
-        dispatch({ type: 'ADD_INVENTORY', payload: newInventory });
-        showNotification("RECORDED SUCCESSFULLY");
-        setTab('stock');
-    };
-
-    return (
-        <>
-            <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto">
-                <h3 className="text-lg font-semibold">Add New Stock Entry</h3>
-                <div>
-                    <label>Tracking Number</label>
-                    <input type="text" required onChange={e => setFormState(p => ({ ...p, trackingNumber: e.target.value }))} className="w-full p-2 border rounded-md" />
-                </div>
-                 <div>
-                    <label>Party Challan Number</label>
-                    <input type="text" required onChange={e => setFormState(p => ({ ...p, partyChallanNumber: e.target.value }))} className="w-full p-2 border rounded-md" />
-                </div>
-                 <div>
-                    <label>Challan Date</label>
-                    <input type="date" required onChange={e => setFormState(p => ({ ...p, challanDate: e.target.value }))} className="w-full p-2 border rounded-md" />
-                </div>
-                <div>
-                    <label>Godown</label>
-                    <select required onChange={e => setFormState(p => ({ ...p, godownId: e.target.value }))} className="w-full p-2 border rounded-md">
-                        <option value="">Select Godown</option>
-                        {state.godowns.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <div className="flex justify-between items-center mb-1">
-                        <label htmlFor="item-select" className="text-sm font-medium text-gray-700">Item</label>
-                        <button
-                            type="button"
-                            onClick={() => setIsItemModalOpen(true)}
-                            className="text-xs font-medium text-primary-600 hover:underline"
-                        >
-                            + Add New Item
-                        </button>
-                    </div>
-                    <select id="item-select" value={formState.itemId || ''} required onChange={e => handleItemSelect(e.target.value)} className="w-full p-2 border rounded-md">
-                        <option value="">Select Item</option>
-                        {state.items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-                    </select>
-                </div>
-
-                {selectedItem && (
-                    <div className="border p-4 rounded-md space-y-2">
-                        <h4 className="font-semibold">Enter Quantities for {selectedItem.name}</h4>
-                        {selectedItem.colors.map(color => (
-                            <div key={color.name}>
-                                <p className="font-medium">{color.name}</p>
-                                 <div className="grid grid-cols-3 gap-2 pl-4">
-                                    {color.sizes.map(size => (
-                                        <div key={size.name}>
-                                            <label className="text-sm">{size.name}</label>
-                                            <input type="number" min="0" placeholder="0" onChange={e => setFormState(p => ({ ...p, [`${color.name}-${size.name}`]: e.target.value }))} className="w-full p-1 border rounded-md" />
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-                <button type="submit" className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">Add Stock</button>
-            </form>
-            {isItemModalOpen && <ItemModal item={null} closeModal={() => setIsItemModalOpen(false)} />}
-        </>
     );
 };
 
@@ -356,7 +335,6 @@ const InternalTransferView: React.FC = () => {
     const KEY_DELIMITER = '_||_';
 
     const trackingNumbersWithStock = useMemo(() => {
-        // FIX: Add explicit type to accumulator to fix type inference issue by casting the initial value.
         const stockByTrackingNumber = state.inventory.reduce((acc, inv) => {
             if (!acc[inv.trackingNumber]) acc[inv.trackingNumber] = 0;
             acc[inv.trackingNumber] += inv.stock.reduce((sum, s) => sum + s.quantity, 0);
@@ -391,7 +369,6 @@ const InternalTransferView: React.FC = () => {
 
         const items: StockItem[] = [];
         let hasError = false;
-        // FIX: Use Object.keys to avoid type inference issues with Object.entries.
         Object.keys(transferQtys).forEach(key => {
             const value = transferQtys[key];
             const qty = parseInt(value || '0');
@@ -473,116 +450,6 @@ const InternalTransferView: React.FC = () => {
     )
 };
 
-const GoodsOutwardView: React.FC = () => {
-    const { state, dispatch } = useData();
-    const { showNotification } = useNotification();
-    const [trackingNumber, setTrackingNumber] = useState('');
-    const [godownId, setGodownId] = useState('');
-    const [partyName, setPartyName] = useState('');
-    const [outwardQtys, setOutwardQtys] = useState<{ [key: string]: string }>({});
-    const KEY_DELIMITER = '_||_';
-
-    const trackingNumbersWithStock = useMemo(() => {
-        // FIX: Add explicit type to accumulator to fix type inference issue by casting the initial value.
-        const stockByTrackingNumber = state.inventory.reduce((acc, inv) => {
-            if (!acc[inv.trackingNumber]) acc[inv.trackingNumber] = 0;
-            acc[inv.trackingNumber] += inv.stock.reduce((sum, s) => sum + s.quantity, 0);
-            return acc;
-        }, {} as { [key: string]: number });
-        return Object.entries(stockByTrackingNumber).filter(([, qty]) => qty > 0).map(([tn]) => tn);
-    }, [state.inventory]);
-
-    const godownsWithStock = useMemo(() => {
-        if (!trackingNumber) return [];
-        const godownIds = state.inventory
-            .filter(i => i.trackingNumber === trackingNumber && i.stock.some(s => s.quantity > 0))
-            .map(i => i.godownId);
-        return state.godowns.filter(g => godownIds.includes(g.id));
-    }, [trackingNumber, state.inventory, state.godowns]);
-    
-    const availableStock = useMemo(() => {
-        if (!trackingNumber || !godownId) return null;
-        return state.inventory.find(i => i.trackingNumber === trackingNumber && i.godownId === godownId);
-    }, [trackingNumber, godownId, state.inventory]);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!availableStock) { alert("Selected stock not found."); return; }
-        
-        const items: StockItem[] = [];
-        let hasError = false;
-        // FIX: Use Object.keys to avoid type inference issues with Object.entries.
-        Object.keys(outwardQtys).forEach(key => {
-            const value = outwardQtys[key];
-            const qty = parseInt(value || '0');
-            if (qty > 0) {
-                const [color, size] = key.split(KEY_DELIMITER);
-                const stockItem = availableStock.stock.find(s => s.color === color && s.size === size);
-                if (!stockItem || qty > stockItem.quantity) hasError = true;
-                items.push({ color, size, quantity: qty });
-            }
-        });
-        
-        if (hasError) { alert("Outward quantity cannot exceed available stock."); return; }
-        if (items.length === 0) { alert("Please enter a quantity for dispatch."); return; }
-
-        const newOutward: GoodsOutward = {
-            outwardChallanNumber: `OUT-${Date.now()}`,
-            partyName,
-            date: new Date().toISOString().slice(0, 10),
-            trackingNumber,
-            godownId,
-            items
-        };
-
-        dispatch({ type: 'ADD_GOODS_OUTWARD', payload: newOutward });
-        showNotification("RECORDED SUCCESSFULLY");
-        setTrackingNumber('');
-        setGodownId('');
-        setPartyName('');
-        setOutwardQtys({});
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto">
-            <h3 className="text-lg font-semibold">Dispatch Goods (Outward)</h3>
-            <div>
-                <label>Party Name</label>
-                <input type="text" value={partyName} onChange={e => setPartyName(e.target.value)} required className="w-full p-2 border rounded-md" />
-            </div>
-            <div>
-                <label>Tracking Number (with stock > 0)</label>
-                <select value={trackingNumber} onChange={e => { setTrackingNumber(e.target.value); setGodownId(''); setOutwardQtys({}); }} className="w-full p-2 border rounded-md" required>
-                    <option value="">Select Tracking #</option>
-                    {trackingNumbersWithStock.map(tn => <option key={tn} value={tn}>{tn}</option>)}
-                </select>
-            </div>
-             <div>
-                <label>From Godown</label>
-                <select value={godownId} onChange={e => { setGodownId(e.target.value); setOutwardQtys({}); }} className="w-full p-2 border rounded-md" disabled={!trackingNumber} required>
-                    <option value="">Select Godown</option>
-                    {godownsWithStock.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                </select>
-            </div>
-            {availableStock && (
-                <div className="border p-4 rounded-md space-y-2">
-                    <h4 className="font-semibold">Available to Dispatch</h4>
-                    {availableStock.stock.map(item => (
-                        <div key={`${item.color}-${item.size}`} className="flex items-center justify-between">
-                            <span>{item.color} / {item.size}: <span className="font-semibold">{item.quantity} pcs</span></span>
-                            <input type="number" max={item.quantity} min="0" placeholder="0"
-                                onChange={e => setOutwardQtys(p => ({ ...p, [`${item.color}${KEY_DELIMITER}${item.size}`]: e.target.value }))}
-                                className="w-24 p-1 border rounded-md" />
-                        </div>
-                    ))}
-                </div>
-            )}
-            <button type="submit" className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700" disabled={!availableStock}>Dispatch Goods</button>
-        </form>
-    );
-};
-
-
 // Item Management Component
 const ItemView: React.FC = () => {
     const { state, dispatch } = useData();
@@ -611,7 +478,7 @@ const ItemView: React.FC = () => {
                     <li key={item.id} className="p-3 border rounded-md flex justify-between items-center">
                         <div>
                             <p className="font-bold">{item.name}</p>
-                            <p className="text-xs text-gray-500">{item.colors.length} colors</p>
+                            <p className="text-xs text-slate-500">{item.colors.length} colors</p>
                         </div>
                         <div className="space-x-2">
                             <button onClick={() => openModal(item)} className="text-blue-500">Edit</button>
@@ -620,7 +487,7 @@ const ItemView: React.FC = () => {
                     </li>
                 ))}
             </ul>
-            {isModalOpen && <ItemModal item={editingItem} closeModal={() => setIsModalOpen(false)} />}
+            {isModalOpen && <ItemModal item={editingItem} onClose={() => setIsModalOpen(false)} />}
         </div>
     );
 };

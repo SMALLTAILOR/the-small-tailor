@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { useNotification } from '../../context/NotificationContext';
-import { Role, ApprovalStatus, WorkEntry, SewingOperation, OperationType } from '../../types';
+import { Role, ApprovalStatus, WorkEntry, SewingOperation, OperationType, SalaryType, User } from '../../types';
 
 // Helper to get an operation's rate.
 const getOperationRate = (opId: string | undefined, operations: SewingOperation[]): number => {
@@ -64,7 +64,7 @@ const EmployeeDashboard: React.FC = () => {
     const totalPiecesToday = todaysWork.reduce((sum, entry) => sum + (entry.quantity || 0), 0);
     
     const StatusBadge: React.FC<{ status: ApprovalStatus }> = ({ status }) => (
-         <span className={`px-3 py-1 text-xs font-medium rounded-full ${status === ApprovalStatus.APPROVED ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+         <span className={`px-3 py-1 text-xs font-medium rounded-full ${status === ApprovalStatus.APPROVED ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
             {status}
         </span>
     );
@@ -73,32 +73,32 @@ const EmployeeDashboard: React.FC = () => {
         <div className="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4">
             <div className="flex-shrink-0">{icon}</div>
             <div>
-                <p className="text-sm text-gray-500">{title}</p>
-                <p className="text-2xl font-bold text-gray-800">{value}</p>
-                {subtext && <p className="text-xs text-gray-400">{subtext}</p>}
+                <p className="text-sm text-slate-500">{title}</p>
+                <p className="text-2xl font-bold text-slate-800">{value}</p>
+                {subtext && <p className="text-xs text-slate-400">{subtext}</p>}
             </div>
         </div>
     );
     
     return (
         <div>
-            <h1 className="text-3xl font-bold text-gray-800">Welcome, {user.details.name}!</h1>
-            <p className="text-gray-600 mt-2">Here is your performance summary for today.</p>
+            <h1 className="text-3xl font-bold text-slate-800">Welcome, {user.details.name}!</h1>
+            <p className="text-slate-600 mt-2">Here is your performance summary for today.</p>
             
             <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column - Main Status */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
-                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         Today's Status
                     </h3>
                     {todaysAttendance ? (
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                                 <span>Attendance</span>
                                 <StatusBadge status={todaysAttendance.status} />
                             </div>
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                                 <span>Check-in Time</span>
                                 <span className="font-semibold">{todaysAttendance.checkInTime}</span>
                             </div>
@@ -128,13 +128,13 @@ const EmployeeDashboard: React.FC = () => {
                     <InfoCard 
                         title="Today's Estimated Earnings"
                         value={`₹${todaysEarnings.toFixed(2)}`}
-                        icon={<div className="p-3 bg-green-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" /></svg></div>}
+                        icon={<div className="p-3 bg-emerald-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" /></svg></div>}
                         subtext="Based on piece-rate work"
                     />
                     <InfoCard 
                         title="This Month's Earnings"
                         value={`₹${monthlyEarnings.toFixed(2)}`}
-                        icon={<div className="p-3 bg-blue-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg></div>}
+                        icon={<div className="p-3 bg-sky-100 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg></div>}
                         subtext="Total for all work logged"
                     />
                 </div>
@@ -142,7 +142,7 @@ const EmployeeDashboard: React.FC = () => {
             
             {/* Recent Activity Section */}
             <div className="mt-8 bg-white p-6 rounded-xl shadow-md">
-                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                     Recent Activity
                 </h3>
@@ -152,21 +152,21 @@ const EmployeeDashboard: React.FC = () => {
                         <li key={entry.id}>
                             <div className="relative pb-8">
                             {entryIdx !== recentWork.length - 1 ? (
-                                <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true" />
+                                <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-slate-200" aria-hidden="true" />
                             ) : null}
                             <div className="relative flex space-x-3">
                                 <div>
-                                <span className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center ring-8 ring-white">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                                <span className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center ring-8 ring-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                                 </span>
                                 </div>
                                 <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
                                 <div>
-                                    <p className="text-sm text-gray-800">
+                                    <p className="text-sm text-slate-800">
                                         Logged <span className="font-semibold">{entry.quantity || entry.fabricUsedKg || 'N/A'}</span> {entry.quantity ? 'pcs for' : 'kgs for'} <span className="font-semibold">{getOperationName(entry, state.sewingOperations)}</span>
                                     </p>
                                 </div>
-                                <div className="text-right text-sm whitespace-nowrap text-gray-500">
+                                <div className="text-right text-sm whitespace-nowrap text-slate-500">
                                     <time dateTime={entry.date}>{entry.date}</time>
                                 </div>
                                 </div>
@@ -174,7 +174,7 @@ const EmployeeDashboard: React.FC = () => {
                             </div>
                         </li>
                         )) : (
-                            <p className="text-center py-4 text-gray-500">No work has been logged yet.</p>
+                            <p className="text-center py-4 text-slate-500">No work has been logged yet.</p>
                         )}
                     </ul>
                 </div>
@@ -185,24 +185,116 @@ const EmployeeDashboard: React.FC = () => {
 
 const AdminManagerDashboard: React.FC = () => {
     const { state } = useData();
+    const today = new Date().toISOString().slice(0, 10);
+    const thisMonth = today.slice(0, 7);
+
+    const { todaysPayroll, monthlyPayroll, operationalCosts } = useMemo(() => {
+        // --- Payroll Calculations ---
+        const approvedAttendanceToday = state.attendance.filter(a => a.date === today && a.status === ApprovalStatus.APPROVED);
+        const presentUserIdsToday = new Set(approvedAttendanceToday.map(a => a.userId));
+        
+        const approvedAttendanceMonth = state.attendance.filter(a => a.date.startsWith(thisMonth) && a.status === ApprovalStatus.APPROVED);
+        const presentDaysByUserIdMonth: { [key: string]: number } = {};
+        approvedAttendanceMonth.forEach(a => {
+            const dateSet = presentDaysByUserIdMonth[a.userId] || new Set();
+            (dateSet as Set<string>).add(a.date);
+            presentDaysByUserIdMonth[a.userId] = (dateSet as Set<string>).size;
+        });
+
+        let todaysPayroll = 0;
+        let monthlyPayroll = 0;
+
+        // Piece Rate
+        const workEntriesToday = state.workEntries.filter(e => e.date === today);
+        const workEntriesMonth = state.workEntries.filter(e => e.date.startsWith(thisMonth));
+
+        todaysPayroll += workEntriesToday.reduce((sum, e) => sum + (e.quantity || 0) * getOperationRate(e.operationId, state.sewingOperations), 0);
+        monthlyPayroll += workEntriesMonth.reduce((sum, e) => sum + (e.quantity || 0) * getOperationRate(e.operationId, state.sewingOperations), 0);
+        
+        // Daily and Monthly Wages
+        state.users.forEach(user => {
+            // FIX: Access salaryType from user.details
+            if (user.details.salaryType === SalaryType.DAILY) {
+                if (presentUserIdsToday.has(user.id)) {
+                    todaysPayroll += user.details.salaryAmount;
+                }
+                monthlyPayroll += (presentDaysByUserIdMonth[user.id] || 0) * user.details.salaryAmount;
+            // FIX: Access salaryType from user.details
+            } else if (user.details.salaryType === SalaryType.MONTHLY) {
+                 if (presentUserIdsToday.has(user.id)) {
+                    todaysPayroll += user.details.salaryAmount / 30;
+                }
+                monthlyPayroll += (presentDaysByUserIdMonth[user.id] || 0) * (user.details.salaryAmount / 30);
+            }
+        });
+
+        // --- Operational Costs ---
+        const operationalCosts = {
+            [OperationType.CUTTING]: 0,
+            [OperationType.SEWING]: 0,
+            [OperationType.FINISHING]: 0,
+        };
+        workEntriesMonth.forEach(entry => {
+            const cost = (entry.quantity || 0) * getOperationRate(entry.operationId, state.sewingOperations);
+            if (operationalCosts[entry.type] !== undefined) {
+                operationalCosts[entry.type] += cost;
+            }
+        });
+
+        return { todaysPayroll, monthlyPayroll, operationalCosts };
+    }, [state.users, state.attendance, state.workEntries, state.sewingOperations, today, thisMonth]);
+
     const pendingUserApprovals = state.users.filter(u => u.approvalStatus === ApprovalStatus.PENDING).length;
     const pendingAttendanceApprovals = state.attendance.filter(a => a.status === ApprovalStatus.PENDING).length;
 
-    const Card = ({ title, value, details }: { title: string, value: string | number, details: string}) => (
+    const Card = ({ title, value, details, isCurrency = false }: { title: string, value: string | number, details: string, isCurrency?: boolean}) => (
         <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-gray-500">{title}</h3>
-            <p className="text-3xl font-bold mt-2 text-gray-800">{value}</p>
-            <p className="text-sm text-gray-400 mt-1">{details}</p>
+            <h3 className="text-lg font-semibold text-slate-500">{title}</h3>
+            <p className="text-3xl font-bold mt-2 text-slate-800">{isCurrency ? `₹${Number(value).toFixed(2)}` : value}</p>
+            <p className="text-sm text-slate-400 mt-1">{details}</p>
         </div>
     );
 
+    const CostChart = ({ data }: { data: { [key: string]: number } }) => {
+        const maxCost = Math.max(...Object.values(data));
+        const chartHeight = 200; // in px
+        const colors = {
+            [OperationType.CUTTING]: 'bg-amber-400 hover:bg-amber-500',
+            [OperationType.SEWING]: 'bg-sky-400 hover:bg-sky-500',
+            [OperationType.FINISHING]: 'bg-emerald-400 hover:bg-emerald-500',
+        };
+    
+        return (
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-lg font-semibold text-slate-700">Operational Costs (This Month)</h3>
+                <div className="mt-4 flex justify-around items-end" style={{ height: `${chartHeight}px` }}>
+                    {Object.entries(data).map(([type, cost]) => (
+                        <div key={type} className="flex flex-col items-center flex-1">
+                            <div className="text-sm font-bold text-slate-700">₹{cost.toFixed(0)}</div>
+                            <div
+                                className={`w-16 ${colors[type as OperationType]} transition-all rounded-t-md`}
+                                style={{ height: `${maxCost > 0 ? (cost / maxCost) * (chartHeight - 40) : 0}px` }}
+                            ></div>
+                            <div className="text-xs text-slate-500 mt-1 font-semibold">{type}</div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <>
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <Card title="Today's Estimated Payroll" value={todaysPayroll} details="All employee earnings for today" isCurrency={true}/>
+                <Card title="This Month's Payroll" value={monthlyPayroll} details="All employee earnings this month" isCurrency={true}/>
+                <Card title="Total Employees" value={state.users.length} details="Across all roles."/>
                 <Card title="Pending User Approvals" value={pendingUserApprovals} details="New employees waiting for access."/>
                 <Card title="Pending Attendance" value={pendingAttendanceApprovals} details="Attendance records to approve."/>
-                <Card title="Total Employees" value={state.users.length} details="Across all roles."/>
                 <Card title="Items in Inventory" value={state.items.length} details="Unique item types."/>
+            </div>
+            <div className="mt-6">
+                <CostChart data={operationalCosts} />
             </div>
         </>
     );
@@ -220,8 +312,8 @@ const Dashboard: React.FC = () => {
   // Admin and Manager View
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800">Welcome, {user.details.name}!</h1>
-      <p className="text-gray-600 mt-2">Here's a summary of your business activities.</p>
+      <h1 className="text-3xl font-bold text-slate-800">Welcome, {user.details.name}!</h1>
+      <p className="text-slate-600 mt-2">Here's a summary of your business activities.</p>
       <AdminManagerDashboard />
     </div>
   );

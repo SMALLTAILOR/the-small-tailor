@@ -78,6 +78,7 @@ export interface Inventory {
     trackingNumber: string;
     partyChallanNumber: string;
     challanDate: string;
+
     itemId: string;
     godownId: string;
     stock: StockItem[];
@@ -129,8 +130,84 @@ export interface WorkEntry {
     fabricColor?: string;
     layerWeight?: number;
     fabricUsedKg?: number;
+    drawingPcs?: number;
+    outputItemId?: string;
+    outputStock?: StockItem[];
 
     // Sewing/Finishing-specific
     operationId?: string;
-    quantity?: number;
+    quantity?: number; // Total quantity, will be derived from processedStock
+    processedStock?: StockItem[]; // The specific items worked on
+}
+
+// --- Accounting Types ---
+
+export interface Vendor {
+    id: string;
+    name: string;
+    contactPerson?: string;
+    phone?: string;
+    address?: string;
+}
+
+export interface Customer {
+    id: string;
+    name: string;
+    contactPerson?: string;
+    phone?: string;
+    address?: string;
+}
+
+export enum PurchaseStatus {
+    PENDING = 'PENDING',
+    RECEIVED = 'RECEIVED',
+    CANCELLED = 'CANCELLED',
+}
+
+export enum SalesStatus {
+    PENDING = 'PENDING',
+    DISPATCHED = 'DISPATCHED',
+    CANCELLED = 'CANCELLED',
+}
+
+export interface PurchaseOrderItem {
+    color: string;
+    size: string;
+    quantity: number;
+    rate: number;
+    amount: number;
+}
+
+export interface PurchaseOrder {
+    id: string;
+    purchaseOrderNumber: string;
+    vendorId: string;
+    orderDate: string;
+    trackingNumber: string;
+    partyChallanNumber: string;
+    itemId: string;
+    godownId: string;
+    items: PurchaseOrderItem[];
+    totalAmount: number;
+    status: PurchaseStatus;
+}
+
+export interface SalesOrderItem {
+    color: string;
+    size: string;
+    quantity: number;
+    rate: number;
+    amount: number;
+}
+
+export interface SalesOrder {
+    id: string;
+    salesOrderNumber: string;
+    customerId: string;
+    orderDate: string;
+    trackingNumber: string;
+    godownId: string;
+    items: SalesOrderItem[];
+    totalAmount: number;
+    status: SalesStatus;
 }

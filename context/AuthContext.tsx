@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
 import { storageService } from '../services/storageService';
@@ -9,7 +10,6 @@ interface AuthContextType {
   updateUser: (user: User) => void;
 }
 
-// FIX: Export AuthContext to allow its usage in `hooks/useAuth.ts`.
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

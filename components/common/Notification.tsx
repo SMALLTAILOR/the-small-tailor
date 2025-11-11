@@ -10,7 +10,7 @@ const Notification: React.FC = () => {
   }
 
   return (
-    <div className="fixed top-5 right-5 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-fade-in-out">
+    <div className="fixed top-5 right-5 z-50 bg-primary-500 text-white px-6 py-3 rounded-lg shadow-lg animate-fade-in-out">
       {notification}
     </div>
   );

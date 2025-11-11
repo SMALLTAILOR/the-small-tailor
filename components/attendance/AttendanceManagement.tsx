@@ -21,8 +21,8 @@ const AttendanceManagement: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-bold mb-4">Pending Attendance Approvals</h2>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-gray-500">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                    <table className="w-full text-sm text-left text-slate-500">
+                        <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Employee</th>
                                 <th scope="col" className="px-6 py-3">Date</th>
@@ -32,18 +32,18 @@ const AttendanceManagement: React.FC = () => {
                         </thead>
                         <tbody>
                             {pendingAttendance.map(att => (
-                                <tr key={att.id} className="bg-white border-b hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-medium text-gray-900">{getUserName(att.userId)}</td>
+                                <tr key={att.id} className="bg-white border-b hover:bg-slate-50">
+                                    <td className="px-6 py-4 font-medium text-slate-900">{getUserName(att.userId)}</td>
                                     <td className="px-6 py-4">{att.date}</td>
                                     <td className="px-6 py-4">{att.checkInTime}</td>
                                     <td className="px-6 py-4 flex space-x-2">
-                                        <button onClick={() => handleApproval(att.id, ApprovalStatus.APPROVED)} className="text-green-600 hover:text-green-900">Approve</button>
+                                        <button onClick={() => handleApproval(att.id, ApprovalStatus.APPROVED)} className="text-emerald-600 hover:text-emerald-900">Approve</button>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                    {pendingAttendance.length === 0 && <p className="text-center py-4 text-gray-500">No pending approvals.</p>}
+                    {pendingAttendance.length === 0 && <p className="text-center py-4 text-slate-500">No pending approvals.</p>}
                 </div>
             </div>
         );
@@ -56,8 +56,8 @@ const AttendanceManagement: React.FC = () => {
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-bold mb-4">My Attendance History</h2>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left text-gray-500">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                    <table className="w-full text-sm text-left text-slate-500">
+                        <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Date</th>
                                 <th scope="col" className="px-6 py-3">Check-in Time</th>
@@ -66,11 +66,11 @@ const AttendanceManagement: React.FC = () => {
                         </thead>
                         <tbody>
                             {myAttendance.map(att => (
-                                <tr key={att.id} className="bg-white border-b hover:bg-gray-50">
+                                <tr key={att.id} className="bg-white border-b hover:bg-slate-50">
                                     <td className="px-6 py-4">{att.date}</td>
                                     <td className="px-6 py-4">{att.checkInTime}</td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${att.status === ApprovalStatus.APPROVED ? 'text-green-800 bg-green-100' : 'text-yellow-800 bg-yellow-100'}`}>
+                                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${att.status === ApprovalStatus.APPROVED ? 'text-emerald-800 bg-emerald-100' : 'text-amber-800 bg-amber-100'}`}>
                                             {att.status}
                                         </span>
                                     </td>
@@ -78,7 +78,7 @@ const AttendanceManagement: React.FC = () => {
                             ))}
                         </tbody>
                     </table>
-                     {myAttendance.length === 0 && <p className="text-center py-4 text-gray-500">No attendance records found.</p>}
+                     {myAttendance.length === 0 && <p className="text-center py-4 text-slate-500">No attendance records found.</p>}
                 </div>
             </div>
         );
@@ -86,7 +86,7 @@ const AttendanceManagement: React.FC = () => {
 
     return (
         <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Attendance</h1>
+            <h1 className="text-3xl font-bold text-slate-800 mb-6">Attendance</h1>
             {user?.role === Role.ADMIN ? <AdminView /> : <EmployeeView />}
         </div>
     );

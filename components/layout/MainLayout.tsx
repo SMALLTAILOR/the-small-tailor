@@ -8,6 +8,7 @@ import AttendanceManagement from '../attendance/AttendanceManagement';
 import InventoryManagement from '../inventory/InventoryManagement';
 import WipManagement from '../wip/WipManagement';
 import Reports from '../reports/Reports';
+import AccountingManagement from '../accounting/AccountingManagement';
 
 const MainLayout: React.FC = () => {
   const [activePage, setActivePage] = useState('dashboard');
@@ -22,6 +23,8 @@ const MainLayout: React.FC = () => {
         return <AttendanceManagement />;
       case 'inventory':
         return <InventoryManagement />;
+      case 'accounting':
+        return <AccountingManagement />;
       case 'wip':
         return <WipManagement />;
       case 'reports':

@@ -1,6 +1,5 @@
 
 import React from 'react';
-// FIX: Import `useAuth` to use the authentication context.
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider } from './context/DataContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -25,7 +24,7 @@ const AppContent: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-800">
+    <div className="min-h-screen bg-slate-100 text-slate-800">
       {user ? <MainLayout /> : <LoginScreen />}
     </div>
   );

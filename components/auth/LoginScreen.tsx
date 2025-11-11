@@ -6,7 +6,6 @@ import { useNotification } from '../../context/NotificationContext';
 import { User, Role, ApprovalStatus, UserStatus, SalaryType, OperationType } from '../../types';
 import { APP_NAME, ICONS } from '../../constants';
 
-// FIX: Reverted from a type alias to an inline type for props to resolve a type inference issue with the `children` prop.
 const FormWrapper = ({ title, children, onSubmit }: {
   title: string;
   children: React.ReactNode;
@@ -14,7 +13,7 @@ const FormWrapper = ({ title, children, onSubmit }: {
 }) => (
     <div className="w-full bg-white rounded-lg shadow-lg md:mt-0 sm:max-w-md xl:p-0">
       <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-        <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl">
+        <h1 className="text-xl font-bold leading-tight tracking-tight text-slate-900 md:text-2xl">
           {title}
         </h1>
         <form className="space-y-4 md:space-y-6" onSubmit={onSubmit}>
@@ -107,7 +106,7 @@ const LoginScreen: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-      <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-gray-900">
+      <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-slate-900">
         <span className="w-8 h-8 mr-2 text-primary-600">{ICONS.logo}</span>
         {APP_NAME}
       </a>
@@ -117,67 +116,67 @@ const LoginScreen: React.FC = () => {
       {isRegistering ? (
         <FormWrapper title="Create an account" onSubmit={handleRegister}>
           <div>
-            <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900">Full Name</label>
-            <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
+            <label htmlFor="name" className="block mb-2 text-sm font-medium text-slate-900">Full Name</label>
+            <input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} className="bg-slate-50 border border-slate-300 text-slate-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
           </div>
           <div>
-            <label htmlFor="jobProfile" className="block mb-2 text-sm font-medium text-gray-900">Job Profile</label>
-            <input type="text" id="jobProfile" value={jobProfile} onChange={(e) => setJobProfile(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
+            <label htmlFor="jobProfile" className="block mb-2 text-sm font-medium text-slate-900">Job Profile</label>
+            <input type="text" id="jobProfile" value={jobProfile} onChange={(e) => setJobProfile(e.target.value)} className="bg-slate-50 border border-slate-300 text-slate-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
           </div>
           <div>
-            <label htmlFor="role" className="block mb-2 text-sm font-medium text-gray-900">Register as</label>
+            <label htmlFor="role" className="block mb-2 text-sm font-medium text-slate-900">Register as</label>
             <select
               id="role"
               value={role}
               onChange={(e) => setRole(e.target.value as Role)}
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
+              className="bg-slate-50 border border-slate-300 text-slate-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5"
             >
               <option value={Role.EMPLOYEE}>Employee</option>
               <option value={Role.MANAGER}>Manager</option>
             </select>
           </div>
            <div>
-            <label className="block mb-2 text-sm font-medium text-gray-900">Scope of Work (WIP)</label>
+            <label className="block mb-2 text-sm font-medium text-slate-900">Scope of Work (WIP)</label>
             <div className="flex items-center space-x-4 mt-1">
                 <div className="flex items-center">
-                    <input id="scope-cutting" type="checkbox" checked={wipScope.includes(OperationType.CUTTING)} onChange={() => handleWipScopeChange(OperationType.CUTTING)} className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"/>
-                    <label htmlFor="scope-cutting" className="ml-2 text-sm font-medium text-gray-900">Cutting</label>
+                    <input id="scope-cutting" type="checkbox" checked={wipScope.includes(OperationType.CUTTING)} onChange={() => handleWipScopeChange(OperationType.CUTTING)} className="w-4 h-4 text-primary-600 bg-slate-100 border-slate-300 rounded focus:ring-primary-500"/>
+                    <label htmlFor="scope-cutting" className="ml-2 text-sm font-medium text-slate-900">Cutting</label>
                 </div>
                 <div className="flex items-center">
-                    <input id="scope-sewing" type="checkbox" checked={wipScope.includes(OperationType.SEWING)} onChange={() => handleWipScopeChange(OperationType.SEWING)} className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"/>
-                    <label htmlFor="scope-sewing" className="ml-2 text-sm font-medium text-gray-900">Sewing</label>
+                    <input id="scope-sewing" type="checkbox" checked={wipScope.includes(OperationType.SEWING)} onChange={() => handleWipScopeChange(OperationType.SEWING)} className="w-4 h-4 text-primary-600 bg-slate-100 border-slate-300 rounded focus:ring-primary-500"/>
+                    <label htmlFor="scope-sewing" className="ml-2 text-sm font-medium text-slate-900">Sewing</label>
                 </div>
                 <div className="flex items-center">
-                    <input id="scope-finishing" type="checkbox" checked={wipScope.includes(OperationType.FINISHING)} onChange={() => handleWipScopeChange(OperationType.FINISHING)} className="w-4 h-4 text-primary-600 bg-gray-100 border-gray-300 rounded focus:ring-primary-500"/>
-                    <label htmlFor="scope-finishing" className="ml-2 text-sm font-medium text-gray-900">Finishing</label>
+                    <input id="scope-finishing" type="checkbox" checked={wipScope.includes(OperationType.FINISHING)} onChange={() => handleWipScopeChange(OperationType.FINISHING)} className="w-4 h-4 text-primary-600 bg-slate-100 border-slate-300 rounded focus:ring-primary-500"/>
+                    <label htmlFor="scope-finishing" className="ml-2 text-sm font-medium text-slate-900">Finishing</label>
                 </div>
             </div>
           </div>
           <div>
-            <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-900">Username</label>
-            <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
+            <label htmlFor="username" className="block mb-2 text-sm font-medium text-slate-900">Username</label>
+            <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} className="bg-slate-50 border border-slate-300 text-slate-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
           </div>
           <div>
-            <label htmlFor="password"  className="block mb-2 text-sm font-medium text-gray-900">Password</label>
-            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
+            <label htmlFor="password"  className="block mb-2 text-sm font-medium text-slate-900">Password</label>
+            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-slate-50 border border-slate-300 text-slate-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
           </div>
           <button type="submit" className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Register</button>
-          <p className="text-sm font-light text-gray-500">
+          <p className="text-sm font-light text-slate-500">
             Already have an account? <button type="button" onClick={() => setIsRegistering(false)} className="font-medium text-primary-600 hover:underline">Sign in</button>
           </p>
         </FormWrapper>
       ) : (
         <FormWrapper title="Sign in to your account" onSubmit={handleLogin}>
           <div>
-            <label htmlFor="username" className="block mb-2 text-sm font-medium text-gray-900">Username</label>
-            <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
+            <label htmlFor="username" className="block mb-2 text-sm font-medium text-slate-900">Username</label>
+            <input type="text" id="username" value={username} onChange={(e) => setUsername(e.target.value)} className="bg-slate-50 border border-slate-300 text-slate-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
           </div>
           <div>
-            <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900">Password</label>
-            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
+            <label htmlFor="password" className="block mb-2 text-sm font-medium text-slate-900">Password</label>
+            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="bg-slate-50 border border-slate-300 text-slate-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5" required />
           </div>
           <button type="submit" className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">Sign in</button>
-          <p className="text-sm font-light text-gray-500">
+          <p className="text-sm font-light text-slate-500">
             Don't have an account? <button type="button" onClick={() => setIsRegistering(true)} className="font-medium text-primary-600 hover:underline">Register here</button>
           </p>
         </FormWrapper>
